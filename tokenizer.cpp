@@ -59,6 +59,4 @@ void Tokenizer::tokenizeFile() {
             }
         }
     }
-
-    // for (int i = 0; i < tokens.size(); i++) std::cout << tokens[i] << " " << types[i] << "\n";
 }

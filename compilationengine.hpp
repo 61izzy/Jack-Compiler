@@ -1,10 +1,4 @@
 /*
-- gets input from tokenizer
-- a bunch of compilexxx routines, one for almost every non-terminal rule xxx in the grammar
-- each routine is responsible for handling all tokens that make up xxx, advancing the tokenizer right after these tokens and outputing the parsing of xxx
-- use provided table to lookup grammar
-
-
 API:
 - constructor(tokenizer (acting as input), output file): creates new compilationengine object and calls compileClass
 - compileClass(): compiles a complete class

@@ -210,7 +210,3 @@ inline void CompilationEngine::compileSymbol() {
     tokenizer.advance();
     output << "<symbol>" << tokenizer.symbol() << "</symbol>\n";
 }
-
-/*
-TextComparer C:\Users\alpha\Jack-Compiler\Square\Square.xml C:\Users\alpha\Downloads\nand2tetris\nand2tetris\projects\10\Square\Square.xml
-*/

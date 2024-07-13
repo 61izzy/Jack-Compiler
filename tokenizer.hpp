@@ -1,10 +1,4 @@
 /*
-Responsible for:
-- ignoring whitespace
-- advancing input one token at a time
-- getting value and type of current token
-
-
 API:
 - constructor(input file): opens jack file
 - hasMoreTokens() -> bool: returns if there are more tokens
@@ -19,10 +13,6 @@ API:
 - identifier() -> string: return current token as string
 - intVal() -> int: return current token as int (use stoi)
 - stringVal() -> string: return current token without the double quotes (though that should be taken care of when parsing/advancing)
-
-
-- the play is probably not to use str.find(), but rather to go through each line one char at a time
-- keep two vectors (or queues, but probably vectors): one for each token and one for each token type
 */
 
 #ifndef TOKENIZER_HPP
@@ -99,9 +89,6 @@ public:
     inline TokenType peekType() {
         return types[index + 1];
     }
-    // inline int keyWord() {
-    //     return keywordTable[tokens[index]];
-    // }
     inline std::string keyWord() {
         return tokens[index];
     }
