@@ -1,29 +1,3 @@
-/*
-API:
-- compileClassVarDec(): compiles a static variable declaration or field declaration
-- compileSubroutineDec(): compiles a complete method, function, or constructor
-- compileParameterList(): compiles a compiler list (possibly empty)
-- compileSubroutineBody(): compiles a subroutine's body
-- compileVarDec(): compiles a var dec
-- compileStatements(): compiles a seq of statements without handling curly braces
-
-statments (all pretty self explanatory):
-- compileLet()
-- compileIf()
-- compileWhile()
-- compileDo()
-    - will call compileTerm() ig?
-- compileReturn()
-
-expressions:
-- compileExpression(): self explanatory
-- compileTerm():
-    - if curr token is identifier, must distinguish between variable, array entry, or subroutine call by looking ahead one token, else should not be advanced
-        - prob add tokenizer.next/getNext() or smth
-    - also handles subroutine calls
-- compileExpressionList(): compiles a list of comma separated expressions (possibly empty)
-*/
-
 #ifndef COMPILATIONENGINE_HPP
 #define COMPILATIONENGINE_HPP
 

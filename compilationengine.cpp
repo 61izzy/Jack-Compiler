@@ -17,6 +17,7 @@ void CompilationEngine::compileClass() {
     compileSymbol();
     output << "</class>\n";
 }
+
 void CompilationEngine::compileClassVarDec() {
     output << "<classVarDec>\n";
     compileKeyword();
@@ -29,6 +30,7 @@ void CompilationEngine::compileClassVarDec() {
     compileSymbol();
     output << "</classVarDec>\n";
 }
+
 void CompilationEngine::compileSubroutineDec() {
     output << "<subroutineDec>\n";
     compileKeyword();
@@ -40,6 +42,7 @@ void CompilationEngine::compileSubroutineDec() {
     compileSubroutineBody();
     output << "</subroutineDec>\n";
 }
+
 void CompilationEngine::compileParameterList() {
     output << "<parameterList>\n";
     if (tokenizer.peekType() != SYMBOL) {
@@ -53,6 +56,7 @@ void CompilationEngine::compileParameterList() {
     }
     output << "</parameterList>\n";
 }
+
 void CompilationEngine::compileSubroutineBody() {
     output << "<subroutineBody>\n";
     compileSymbol();
@@ -61,6 +65,7 @@ void CompilationEngine::compileSubroutineBody() {
     compileSymbol();
     output << "</subroutineBody>\n";
 }
+
 void CompilationEngine::compileVarDec() {
     output << "<varDec>\n";
     compileKeyword();
@@ -73,6 +78,7 @@ void CompilationEngine::compileVarDec() {
     compileSymbol();
     output << "</varDec>\n";
 }
+
 void CompilationEngine::compileStatements() {
     output << "<statements>\n";
     while (tokenizer.peekType() == KEYWORD) {
@@ -85,6 +91,7 @@ void CompilationEngine::compileStatements() {
     }
     output << "</statements>\n";
 }
+
 void CompilationEngine::compileLet() {
     output << "<letStatement>\n";
     compileKeyword();
@@ -99,6 +106,7 @@ void CompilationEngine::compileLet() {
     compileSymbol();
     output << "</letStatement>\n";
 }
+
 void CompilationEngine::compileIf() {
     output << "<ifStatement>\n";
     compileKeyword();
@@ -116,6 +124,7 @@ void CompilationEngine::compileIf() {
     }
     output << "</ifStatement>\n";
 }
+
 void CompilationEngine::compileWhile() {
     output << "<whileStatement>\n";
     compileKeyword();
@@ -127,6 +136,7 @@ void CompilationEngine::compileWhile() {
     compileSymbol();
     output << "</whileStatement>\n";
 }
+
 void CompilationEngine::compileDo() {
     output << "<doStatement>\n";
     compileKeyword();
@@ -134,6 +144,7 @@ void CompilationEngine::compileDo() {
     compileSymbol();
     output << "</doStatement>\n";
 }
+
 void CompilationEngine::compileReturn() {
     output << "<returnStatement>\n";
     compileKeyword();
@@ -141,6 +152,7 @@ void CompilationEngine::compileReturn() {
     compileSymbol();
     output << "</returnStatement>\n";
 }
+
 void CompilationEngine::compileExpression() {
     output << "<expression>\n";
     compileTerm();
@@ -150,12 +162,15 @@ void CompilationEngine::compileExpression() {
     }
     output << "</expression>\n";
 }
+
 void CompilationEngine::compileTerm() {
     bool isDoStatement = tokenizer.stringVal() == "do";
     if (!isDoStatement) output << "<term>\n"; // printing <term></term> after a do statement fails comparison when testing
     tokenizer.advance();
     switch (tokenizer.tokenType()) {
         case IDENTIFIER:
+            // if curr token is identifier, must distinguish between variable, array entry, 
+            // or subroutine call by looking ahead one token
             if (tokenizer.peek() == ".") {
                 output << "<identifier>" << tokenizer.identifier() << "</identifier>\n";
                 compileSymbol();
@@ -189,6 +204,7 @@ void CompilationEngine::compileTerm() {
     }
     if (!isDoStatement) output << "</term>\n";
 }
+
 void CompilationEngine::compileExpressionList() {
     output << "<expressionList>\n";
     while (tokenizer.peek() != ")") {
@@ -197,18 +213,22 @@ void CompilationEngine::compileExpressionList() {
     }
     output << "</expressionList>\n";
 }
+
 inline void CompilationEngine::compileType() {
     if (tokenizer.peekType() == KEYWORD) compileKeyword();
     else compileIdentifier();
 }
+
 inline void CompilationEngine::compileIdentifier() {
     tokenizer.advance();
     output << "<identifier>" << tokenizer.identifier() << "</identifier>\n";
 }
+
 inline void CompilationEngine::compileKeyword() {
     tokenizer.advance();
     output << "<keyword>" << tokenizer.keyWord() << "</keyword>\n";
 }
+
 inline void CompilationEngine::compileSymbol() {
     tokenizer.advance();
     output << "<symbol>" << tokenizer.symbol() << "</symbol>\n";
