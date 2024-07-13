@@ -4,6 +4,9 @@
 // pretty sure theres no need to check if hasNextToken before peeking since we're assuming that the code is correct anyways
 // this means that none of the compiles should end there
 
+// all of the methods below should be pretty self-explanatory
+// Jack grammar reference: nand2tetris lecture 10 pg 41
+
 void CompilationEngine::compileClass() {
     output << "<class>\n";
     compileKeyword();
@@ -86,7 +89,7 @@ void CompilationEngine::compileLet() {
     output << "<letStatement>\n";
     compileKeyword();
     compileIdentifier();
-    if (tokenizer.peek() == "[") {
+    while (tokenizer.peek() == "[") { // honestly not sure if Jack supports multidimensional arrays, but just in case
         compileSymbol();
         compileExpression();
         compileSymbol();
@@ -149,7 +152,7 @@ void CompilationEngine::compileExpression() {
 }
 void CompilationEngine::compileTerm() {
     bool isDoStatement = tokenizer.stringVal() == "do";
-    if (!isDoStatement) output << "<term>\n";
+    if (!isDoStatement) output << "<term>\n"; // printing <term></term> after a do statement fails comparison when testing
     tokenizer.advance();
     switch (tokenizer.tokenType()) {
         case IDENTIFIER:
@@ -159,7 +162,7 @@ void CompilationEngine::compileTerm() {
                 tokenizer.advance();
             }
             output << "<identifier>" << tokenizer.identifier() << "</identifier>\n";
-            if (tokenizer.peek() == "(" || tokenizer.peek() == "[") {
+            if (tokenizer.peek() == "(" || tokenizer.peek() == "[") { // in case Jack supports multidimensional arrays
                 compileSymbol();
                 if (tokenizer.symbol() == "(") compileExpressionList();
                 else compileExpression();

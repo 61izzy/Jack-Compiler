@@ -1,26 +1,9 @@
-/*
-API:
-- constructor(input file): opens jack file
-- hasMoreTokens() -> bool: returns if there are more tokens
-- advance(): returns next token and makes it current token. should only be called if hasMoreTokens() is true
-- tokenType() -> tokenType: returns type of current token as a constant (KEYWORD, SYMBOL, IDENTIFIER, INT_CONST, STRING_CONST)
-
-- each of the methods below should only be called if the current token is the corresponding type 
-- keyWord() -> keyword: returns one of (CLASS, METHOD, FUNCTION, CONSTRUCTOR, INT, BOOLEAN, CHAR, VOID, VAR, STATIC, FIELD, LET, DO, IF, ELSE, WHILE, 
-    RETURN, TRUE, FALSE, NULL, THIS)
-    - prob create lookup table for this
-- symbol() -> char: return current token as char
-- identifier() -> string: return current token as string
-- intVal() -> int: return current token as int (use stoi)
-- stringVal() -> string: return current token without the double quotes (though that should be taken care of when parsing/advancing)
-*/
-
 #ifndef TOKENIZER_HPP
 #define TOKENIZER_HPP
 
 class Tokenizer {
 private:
-    int index = -1;
+    int index = -1; // we call advance before most compilexxx methods, so we don't want to accidentally skip the first token
     std::ifstream &input;
     std::vector<std::string> tokens;
     std::vector<TokenType> types;
@@ -86,13 +69,14 @@ public:
     inline TokenType tokenType() {
         return types[index];
     }
-    inline TokenType peekType() {
+    inline TokenType peekType() { // get the type of next token without advancing
         return types[index + 1];
     }
     inline std::string keyWord() {
         return tokens[index];
     }
     inline std::string symbol() {
+        // special sequences to display correctly in xml
         if (tokens[index] == "<") return "&lt;";
         if (tokens[index] == ">") return "&gt;";
         if (tokens[index] == "&") return "&amp;";

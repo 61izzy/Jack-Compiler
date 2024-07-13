@@ -3,6 +3,7 @@
 #include "compilationengine.hpp"
 
 // TODO: add comments later and remove commented out code
+// TODO: update readme once compiler is completed
 
 void processFile(const std::string &pathstring, const std::string &filename) {
     // opening input and output files

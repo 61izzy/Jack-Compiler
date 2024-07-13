@@ -1,7 +1,5 @@
 /*
 API:
-- constructor(tokenizer (acting as input), output file): creates new compilationengine object and calls compileClass
-- compileClass(): compiles a complete class
 - compileClassVarDec(): compiles a static variable declaration or field declaration
 - compileSubroutineDec(): compiles a complete method, function, or constructor
 - compileParameterList(): compiles a compiler list (possibly empty)
