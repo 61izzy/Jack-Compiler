@@ -156,7 +156,7 @@ void CompilationEngine::compileReturn() {
 void CompilationEngine::compileExpression() {
     output << "<expression>\n";
     compileTerm();
-    if (ops.find(tokenizer.peek()) != ops.end()) {
+    while (ops.find(tokenizer.peek()) != ops.end()) {
         compileSymbol();
         compileTerm();
     }
