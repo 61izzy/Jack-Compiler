@@ -18,7 +18,7 @@ cd src/Compiler
 ```
 All .jack files in the directory will be translated into separate .vm files with the format `<folderpath>/<filename>.vm`.
 
-There are a few example Jack programs included along with either their translated vm programs or the generated xml tree.
+There are a few example Jack programs included along with either their translated vm code or the generated xml tree.
 
 Note: For now, the compiler assumes that the Jack code is error free. This may or may not change in the future.
 
