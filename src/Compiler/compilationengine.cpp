@@ -10,6 +10,7 @@
 void CompilationEngine::compileClass() {
     expectKeyword("class");
     expectIdentifier();
+    // store name of the current file, which is always the same as the class name according to jack language specifications
     className = tokenizer.identifier();
     expectSymbol("{");
     while (tokenizer.peek() == "static" || tokenizer.peek() == "field") compileClassVarDec();
@@ -21,15 +22,17 @@ void CompilationEngine::compileClassVarDec() {
     expectKeyword(std::unordered_set<std::string>{"static", "field"});
     std::string kind = tokenizer.keyWord();
     bool isStatic = kind == "static";
+    // we assign "this" to field variables for generating vm code more easily
     if (!isStatic) kind = "this";
     expectType();
     std::string type = tokenizer.stringVal();
-    expectIdentifier();
-    classTable[tokenizer.identifier()] = {type, kind, isStatic ? staticCount++ : fieldCount++};
-    while (tokenizer.peek() == ",") {
-        expectSymbol(",");
+    while (true) {
         expectIdentifier();
+        // add identifier to symbol table along with its type, kind, and index
         classTable[tokenizer.identifier()] = {type, kind, isStatic ? staticCount++ : fieldCount++};
+        // if no comma, we assume no more variable declarations on current line and expect a ';'
+        if (tokenizer.peek() != ",") break;
+        expectSymbol(",");
     }
     expectSymbol(";");
 }
@@ -39,33 +42,34 @@ void CompilationEngine::compileSubroutineDec() {
     isMethod = false, isConstructor = false;
     expectKeyword(std::unordered_set<std::string>{"constructor", "function", "method"});
     if (tokenizer.keyWord() == "method") {
+        // add "this" (the current object instance) to the symbol table of the current subroutine
+        // only added to the symbol table when processing methods (out of convention, not really necessity)
         subroutineTable["this"] = {className, "argument", 0};
         isMethod = true;
     }
     if (tokenizer.keyWord() == "constructor") isConstructor = true;
     expectType();
     expectIdentifier();
+    // store the name of current subroutine
     subroutineName = tokenizer.identifier();
     expectSymbol("(");
     compileParameterList();
     expectSymbol(")");
     compileSubroutineBody();
+    // once we finish compiling a subroutine, we no longer need its symbol table
     subroutineTable.clear();
 }
 
 void CompilationEngine::compileParameterList() {
-    if (tokenizer.peekType() != SYMBOL) {
+    while (tokenizer.peekType() != SYMBOL) {
         expectType();
         std::string type = tokenizer.stringVal();
         expectIdentifier();
+        // add current argument to subroutine symbol table
         subroutineTable[tokenizer.identifier()] = {type, "argument", subroutineTable.size()};
-    }
-    while (tokenizer.peek() == ",") {
+        // if no comma, we assume no more parameter declarations
+        if (tokenizer.peek() != ",") break;
         expectSymbol(",");
-        expectType();
-        std::string type = tokenizer.stringVal();
-        expectIdentifier();
-        subroutineTable[tokenizer.identifier()] = {type, "argument", subroutineTable.size()};
     }
 }
 
@@ -74,11 +78,13 @@ void CompilationEngine::compileSubroutineBody() {
     while (tokenizer.peek() == "var") compileVarDec();
     writer.writeFunction(className + '.' + subroutineName, localCount);
     if (isConstructor) {
+        // allocate space for a new instance of current class and assign it to this
         writer.writePush("constant", fieldCount);
         writer.writeCall("Memory.alloc", 1);
         writer.writePop("pointer", 0);
     }
     if (isMethod) {
+        // assign argument 0 to this as per the jack language specification
         writer.writePush("argument", 0);
         writer.writePop("pointer", 0);
     }
@@ -90,12 +96,13 @@ void CompilationEngine::compileVarDec() {
     expectKeyword("var");
     expectType();
     std::string type = tokenizer.stringVal();
-    expectIdentifier();
-    subroutineTable[tokenizer.identifier()] = {type, "local", localCount++};
-    while (tokenizer.peek() == ",") {
-        expectSymbol(",");
+    while (true) {
         expectIdentifier();
+        // add current local variable to subroutine symbol table
         subroutineTable[tokenizer.identifier()] = {type, "local", localCount++};
+        // if no comma, we assume no more variable declarations on current line and expect a ';'
+        if (tokenizer.peek() != ",") break;
+        expectSymbol(",");
     }
     expectSymbol(";");
 }
@@ -158,6 +165,7 @@ void CompilationEngine::compileIf() {
         expectSymbol("}");
         writer.writeLabel("L" + std::to_string(temp + 1));
     }
+    // for if statements without else clause, we only need to generate 1 label
     else writer.writeLabel("L" + std::to_string(temp));
 }
 
@@ -186,6 +194,7 @@ void CompilationEngine::compileDo() {
 
 void CompilationEngine::compileReturn() {
     expectKeyword("return");
+    // if no expression is returned, return null instead (represented by constant 0 in jack)
     if (tokenizer.peek() != ";") compileExpression();
     else writer.writePush("constant", 0);
     expectSymbol(";");
@@ -194,12 +203,10 @@ void CompilationEngine::compileReturn() {
 
 void CompilationEngine::compileExpression() {
     compileTerm();
+    // process an indefinite amount of binary operations, compiling each expression and performing the operation with the previous result
     while (binaryOps.find(tokenizer.peek()) != binaryOps.end()) {
         expectSymbol(binaryOps);
         std::string op = tokenizer.symbol();
-
-        // std::cout << op << " " << binaryOps[op] << " " << className << " " << subroutineName << " bruh why is this designed so badly\n";
-
         compileTerm();
         writer.writeArithmetic(binaryOps[op]);
     }
@@ -214,6 +221,7 @@ void CompilationEngine::compileTerm() {
             // or subroutine call by looking ahead one token
             expectIdentifier();
             if (tokenizer.peek() == ".") {
+                // pretty much guaranteed to be a subroutine call
                 if (subroutineTable.find(name) != subroutineTable.end()) {
                     currClass = std::get<0>(subroutineTable[name]);
                     segment = std::get<1>(subroutineTable[name]);
@@ -224,13 +232,15 @@ void CompilationEngine::compileTerm() {
                     segment = std::get<1>(classTable[name]);
                     index = std::get<2>(classTable[name]);
                 }
+                // this means that it is a static function
                 else currClass = name;
                 expectSymbol(".");
                 expectIdentifier();
             }
             if (tokenizer.peek() == "(") {
+                // keep track of argument count of current call using a "stack"
                 argCount.push_back(0);
-                if (name != currClass) {
+                if (name != currClass) { // if method, add instance as argument 0
                     writer.writePush(segment, index);
                     ++argCount.back();
                 }
@@ -239,10 +249,12 @@ void CompilationEngine::compileTerm() {
                 compileExpressionList();
                 expectSymbol(")");
                 writer.writeCall(currClass + "." + name, argCount.back());
+                // pop argument count once done
                 argCount.pop_back();
             }
             else compileVar(name, true);
             if (tokenizer.peek() == "[") {
+                // can do regular array accesses when not assigning
                 expectSymbol("[");
                 compileExpression();
                 expectSymbol("]");
@@ -252,11 +264,13 @@ void CompilationEngine::compileTerm() {
             }
             break;
         case SYMBOL:
+            // parenthesis priority
             if (tokenizer.peek() == "(") {
                 expectSymbol("(");
                 compileExpression();
                 expectSymbol(")");
             }
+            // otherwise we expect a unary operation
             else {
                 expectSymbol(unaryOps);
                 std::string op = tokenizer.symbol();

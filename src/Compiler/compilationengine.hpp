@@ -5,6 +5,7 @@
 #include "vmwriter.hpp"
 
 // the expectxxx methods are in case this project gets extended with error checking
+// when the current token differs from the expected value(s), we can throw an error
 
 class CompilationEngine {
 private:
